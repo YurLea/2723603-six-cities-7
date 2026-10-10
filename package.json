@@ -12,9 +12,10 @@
     "start": "npm run build && node ./dist/main.js",
     "build": "npm run clean && npm run compile",
     "lint": "eslint src/ --ext .ts",
-    "compile": "tsc -p tsconfig.json",
+    "compile": "tsc -p tsconfig.json && node ./scripts/add-shebang.js",
     "clean": "rimraf dist",
-    "ts": "ts-node"
+    "ts": "ts-node",
+    "cli": "node ./dist/cli/cli.js"
   },
   "devDependencies": {
     "@types/node": "18.16.3",
@@ -30,5 +31,8 @@
   "engines": {
     "node": "^18.0.0",
     "npm": ">=8"
+  },
+  "dependencies": {
+    "chalk": "^6.0.1"
   }
 }
