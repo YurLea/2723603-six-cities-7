@@ -22,23 +22,37 @@ export class ImportCommand implements ICommand {
       return;
     }
 
-    let okCount = 0;
+    let total = 0;
+    let ok = 0;
+    let errors = 0;
+    const startedAt = Date.now();
 
     try {
       await this.fileReader.read(filePath, (line, lineNumber) => {
+        total += 1;
+
         try {
-          const offer = this.parser.parse(line);
-          okCount += 1;
-          console.log(
-            `${chalk.green('[OK]')} ${offer.title} — ${chalk.gray(offer.city.name)} — €${offer.price}`
-          );
+          this.parser.parse(line);
+          ok += 1;
+
+          if (total % 100000 === 0) {
+            console.log(chalk.gray(`Прочитано строк: ${total}...`));
+          }
         } catch (e) {
+          errors += 1;
           const message = e instanceof Error ? e.message : String(e);
           console.log(chalk.red(`[ERROR] строка ${lineNumber}: ${message}`));
         }
       });
 
-      console.log(chalk.bold(`\nИмпорт завершён. Успешно: ${okCount}\n`));
+      const seconds = (Date.now() - startedAt) / 1000;
+      const speed = seconds > 0 ? Math.round(total / seconds) : total;
+
+      console.log(chalk.bold('\nИмпорт завершён.'));
+      console.log(`${chalk.green('Успешно:')} ${ok}`);
+      console.log(`${chalk.red('Ошибок:')} ${errors}`);
+      console.log(`${chalk.cyan('Всего строк:')} ${total}`);
+      console.log(chalk.gray(`Время: ${seconds.toFixed(2)}s, скорость: ~${speed} строк/с\n`));
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);
       console.log(chalk.red(message));
