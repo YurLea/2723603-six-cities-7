@@ -1,0 +1,54 @@
+{
+  "titles": [
+    { "value": "Cozy apartment in the center" },
+    { "value": "Bright room near метро" },
+    { "value": "Modern hotel with breakfast" },
+    { "value": "Quiet house with garden" },
+    { "value": "Nice apartment with balcony" },
+    { "value": "Small room for short stay" }
+  ],
+  "descriptions": [
+    { "value": "A quiet place with fast Wi-Fi and a great view. Perfect for weekends." },
+    { "value": "Light room, clean bathroom, kitchen available. Great for business trips." },
+    { "value": "Spacious and modern place close to public transport and city center." },
+    { "value": "Comfortable stay with everything you need for a few days or more." },
+    { "value": "Clean and warm apartment with all amenities for a family trip." }
+  ],
+  "previewImages": [
+    { "value": "https://example.com/preview-1.jpg" },
+    { "value": "https://example.com/preview-2.jpg" },
+    { "value": "https://example.com/preview-3.jpg" },
+    { "value": "https://example.com/preview-4.jpg" },
+    { "value": "https://example.com/preview-5.jpg" }
+  ],
+  "images": [
+    { "value": "https://example.com/img-1.jpg" },
+    { "value": "https://example.com/img-2.jpg" },
+    { "value": "https://example.com/img-3.jpg" },
+    { "value": "https://example.com/img-4.jpg" },
+    { "value": "https://example.com/img-5.jpg" },
+    { "value": "https://example.com/img-6.jpg" },
+    { "value": "https://example.com/img-7.jpg" },
+    { "value": "https://example.com/img-8.jpg" }
+  ],
+  "userNames": [
+    { "value": "Alice" },
+    { "value": "Bob" },
+    { "value": "Charlie" },
+    { "value": "Daria" },
+    { "value": "Egor" }
+  ],
+  "userEmails": [
+    { "value": "alice@example.com" },
+    { "value": "bob@example.com" },
+    { "value": "charlie@example.com" },
+    { "value": "daria@example.com" },
+    { "value": "egor@example.com" }
+  ],
+  "userAvatars": [
+    { "value": "https://example.com/avatar-1.png" },
+    { "value": "https://example.com/avatar-2.png" },
+    { "value": "https://example.com/avatar-3.png" },
+    { "value": "" }
+  ]
+}
