@@ -1,29 +1,23 @@
-import fs from 'node:fs';
-import path from 'node:path';
+import { createReadStream } from 'node:fs';
 import { createInterface } from 'node:readline';
+import { injectable } from 'inversify';
 
+@injectable()
 export class TSVFileReader {
   public async read(
     filePath: string,
     onLine: (line: string, lineNumber: number) => void | Promise<void>
   ): Promise<void> {
-    const resolvedPath = path.resolve(process.cwd(), filePath);
-
-    if (!fs.existsSync(resolvedPath)) {
-      throw new Error(`Файл не найден: ${resolvedPath}`);
-    }
-
-    const stream = fs.createReadStream(resolvedPath, { encoding: 'utf-8' });
-    const rl = createInterface({ input: stream, crlfDelay: Infinity });
+    const rl = createInterface({
+      input: createReadStream(filePath),
+      crlfDelay: Infinity
+    });
 
     let lineNumber = 0;
+
     for await (const line of rl) {
       lineNumber += 1;
-      const trimmed = line.trim();
-      if (!trimmed) {
-        continue;
-      }
-      await onLine(trimmed, lineNumber);
+      await onLine(line, lineNumber);
     }
   }
 }
