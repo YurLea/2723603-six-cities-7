@@ -1,3 +1,5 @@
+import { injectable } from 'inversify';
+
 import type { Offer } from '../../types/offer.type.js';
 import type { Goods, HousingType } from '../../types/offer.type.js';
 
@@ -5,6 +7,7 @@ import { CITY_LOCATIONS, isCityName } from '../../types/city.type.js';
 import { isUserType } from '../../types/user.type.js';
 import { isGood, isHousingType } from '../../types/offer.type.js';
 
+@injectable()
 export class TSVOfferParser {
   private parseBoolean(value: string): boolean {
     return value === 'true';
