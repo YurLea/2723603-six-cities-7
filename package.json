@@ -17,9 +17,12 @@
     "clean": "rimraf dist",
     "ts": "ts-node",
     "cli": "node ./dist/cli/cli.js",
-    "mock:server": "json-server --watch ./mocks/mock-server-data.json --port 3123"
+    "mock:server": "json-server --watch ./mocks/mock-server-data.json --port 3123",
+    "openapi:lint": "redocly lint ./specification/specification.yml",
+    "openapi:build": "redocly build-docs ./specification/specification.yml -o ./specification/api.html"
   },
   "devDependencies": {
+    "@redocly/cli": "^2.72.1",
     "@types/convict": "^6.1.6",
     "@types/node": "18.16.3",
     "@typescript-eslint/eslint-plugin": "5.46.0",
