@@ -1,0 +1,681 @@
+openapi: 3.0.3
+
+info:
+  title: Six Cities API
+  version: 1.0.0
+  description: REST API for Six Cities project
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://127.0.0.1:4000
+    description: Local dev server
+
+tags:
+  - name: offers
+    description: Offers operations
+  - name: comments
+    description: Comments operations
+  - name: users
+    description: Users operations
+  - name: favorites
+    description: Favorites operations
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]
+
+    Location:
+      type: object
+      properties:
+        latitude:
+          type: number
+          example: 52.370216
+        longitude:
+          type: number
+          example: 4.895168
+      required: [latitude, longitude]
+
+    City:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Amsterdam
+        location:
+          $ref: '#/components/schemas/Location'
+      required: [name, location]
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "66dc7f..."
+        name:
+          type: string
+          minLength: 1
+          maxLength: 15
+        email:
+          type: string
+          format: email
+        avatarUrl:
+          type: string
+          nullable: true
+          example: "https://example.com/avatar.png"
+        type:
+          type: string
+          enum: [обычный, pro]
+      required: [id, name, email, type]
+
+    UserWithToken:
+      allOf:
+        - $ref: '#/components/schemas/User'
+        - type: object
+          properties:
+            token:
+              type: string
+          required: [token]
+
+    CreateUserDto:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 15
+        email:
+          type: string
+          format: email
+        avatarUrl:
+          type: string
+          nullable: true
+        password:
+          type: string
+          minLength: 6
+          maxLength: 12
+        type:
+          type: string
+          enum: [обычный, pro]
+      required: [name, email, password, type]
+
+    LoginDto:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 6
+          maxLength: 12
+      required: [email, password]
+
+    OfferPreview:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        type:
+          type: string
+          enum: [apartment, house, room, hotel]
+        price:
+          type: integer
+        postDate:
+          type: string
+          format: date-time
+        city:
+          $ref: '#/components/schemas/City'
+        previewImage:
+          type: string
+        isPremium:
+          type: boolean
+        isFavorite:
+          type: boolean
+        rating:
+          type: number
+          minimum: 1
+          maximum: 5
+        commentsCount:
+          type: integer
+          minimum: 0
+      required:
+        [id, title, type, price, postDate, city, previewImage, isPremium, isFavorite, rating, commentsCount]
+
+    Offer:
+      allOf:
+        - $ref: '#/components/schemas/OfferPreview'
+        - type: object
+          properties:
+            description:
+              type: string
+            images:
+              type: array
+              items:
+                type: string
+              minItems: 6
+              maxItems: 6
+            bedrooms:
+              type: integer
+              minimum: 1
+              maximum: 8
+            maxAdults:
+              type: integer
+              minimum: 1
+              maximum: 10
+            goods:
+              type: array
+              items:
+                type: string
+            author:
+              $ref: '#/components/schemas/User'
+            location:
+              $ref: '#/components/schemas/Location'
+          required:
+            [description, images, bedrooms, maxAdults, goods, author, location]
+
+    CreateOfferDto:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 10
+          maxLength: 100
+        description:
+          type: string
+          minLength: 20
+          maxLength: 1024
+        city:
+          type: string
+          enum: [Paris, Cologne, Brussels, Amsterdam, Hamburg, Dusseldorf]
+        previewImage:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+          minItems: 6
+          maxItems: 6
+        isPremium:
+          type: boolean
+        type:
+          type: string
+          enum: [apartment, house, room, hotel]
+        bedrooms:
+          type: integer
+          minimum: 1
+          maximum: 8
+        maxAdults:
+          type: integer
+          minimum: 1
+          maximum: 10
+        price:
+          type: integer
+          minimum: 100
+          maximum: 100000
+        goods:
+          type: array
+          items:
+            type: string
+        location:
+          $ref: '#/components/schemas/Location'
+      required:
+        [title, description, city, previewImage, images, isPremium, type, bedrooms, maxAdults, price, goods, location]
+
+    UpdateOfferDto:
+      $ref: '#/components/schemas/CreateOfferDto'
+
+    Comment:
+      type: object
+      properties:
+        id:
+          type: string
+        text:
+          type: string
+          minLength: 5
+          maxLength: 1024
+        postDate:
+          type: string
+          format: date-time
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        author:
+          $ref: '#/components/schemas/User'
+      required: [id, text, postDate, rating, author]
+
+    CreateCommentDto:
+      type: object
+      properties:
+        text:
+          type: string
+          minLength: 5
+          maxLength: 1024
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+      required: [text, rating]
+
+security:
+  - bearerAuth: []
+
+paths:
+  /offers:
+    get:
+      tags: [offers]
+      summary: Get offers list
+      operationId: getOffers
+      security: []
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 60
+            minimum: 1
+          description: Max offers count
+      responses:
+        '200':
+          description: Offers list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OfferPreview'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [offers]
+      summary: Create offer
+      operationId: createOffer
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOfferDto'
+      responses:
+        '201':
+          description: Created offer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Offer'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /offers/{offerId}:
+    get:
+      tags: [offers]
+      summary: Get offer details
+      operationId: getOffer
+      security: []
+      parameters:
+        - in: path
+          name: offerId
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Offer details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Offer'
+        '404':
+          description: Offer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    patch:
+      tags: [offers]
+      summary: Update offer
+      operationId: updateOffer
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: offerId
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateOfferDto'
+      responses:
+        '200':
+          description: Updated offer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Offer'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden (not owner)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Offer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [offers]
+      summary: Delete offer
+      operationId: deleteOffer
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: offerId
+          required: true
+          schema: { type: string }
+      responses:
+        '204':
+          description: Deleted
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '403':
+          description: Forbidden (not owner)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '404':
+          description: Offer not found
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+  /offers/premium/{city}:
+    get:
+      tags: [offers]
+      summary: Get premium offers for city
+      operationId: getPremiumOffers
+      security: []
+      parameters:
+        - in: path
+          name: city
+          required: true
+          schema:
+            type: string
+            enum: [Paris, Cologne, Brussels, Amsterdam, Hamburg, Dusseldorf]
+      responses:
+        '200':
+          description: Premium offers (max 3)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OfferPreview'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+  /comments/{offerId}:
+    get:
+      tags: [comments]
+      summary: Get offer comments
+      operationId: getComments
+      security: []
+      parameters:
+        - in: path
+          name: offerId
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Comments list (max 50 latest)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+        '404':
+          description: Offer not found
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+    post:
+      tags: [comments]
+      summary: Add comment
+      operationId: createComment
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: offerId
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCommentDto'
+      responses:
+        '201':
+          description: Created comment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '404':
+          description: Offer not found
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+  /favorite:
+    get:
+      tags: [favorites]
+      summary: Get favorites
+      operationId: getFavorites
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Favorite offers list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OfferPreview'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+  /favorite/{offerId}/{status}:
+    post:
+      tags: [favorites]
+      summary: Set favorite status
+      operationId: setFavorite
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: offerId
+          required: true
+          schema: { type: string }
+        - in: path
+          name: status
+          required: true
+          schema:
+            type: integer
+            enum: [0, 1]
+          description: 1 - add to favorites, 0 - remove
+      responses:
+        '200':
+          description: Updated offer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Offer'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '404':
+          description: Offer not found
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+  /register:
+    post:
+      tags: [users]
+      summary: Register user
+      operationId: register
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateUserDto' }
+      responses:
+        '201':
+          description: Created user (without password)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '409':
+          description: Email already exists
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+  /login:
+    post:
+      tags: [users]
+      summary: Login
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginDto' }
+      responses:
+        '200':
+          description: Logged in (token)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UserWithToken' }
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+    get:
+      tags: [users]
+      summary: Check auth status
+      operationId: checkAuth
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Authorized user info
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+  /logout:
+    post:
+      tags: [users]
+      summary: Logout
+      operationId: logout
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Logged out
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
