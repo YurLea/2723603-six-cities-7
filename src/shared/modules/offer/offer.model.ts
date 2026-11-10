@@ -29,9 +29,10 @@ const OfferSchema = new Schema<OfferEntity>(
     images: { type: [String], required: true },
 
     isPremium: { type: Boolean, required: true },
-    isFavorite: { type: Boolean, required: true },
 
-    rating: { type: Number, required: true },
+    isFavorite: { type: Boolean, default: false },
+
+    rating: { type: Number, required: true, default: 0 },
     type: { type: String, required: true },
 
     bedrooms: { type: Number, required: true },
