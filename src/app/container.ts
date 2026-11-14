@@ -10,9 +10,13 @@ import { MongoClientService } from '../shared/database/mongo-client.service.js';
 
 import { createUserModel } from '../shared/modules/user/user.model.js';
 import { createOfferModel } from '../shared/modules/offer/offer.model.js';
+import { createCommentModel } from '../shared/modules/comment/comment.model.js';
+import { createFavoriteModel } from '../shared/modules/favorite/favorite.model.js';
 
 import { DefaultUserService } from '../shared/modules/user/user.service.js';
 import { DefaultOfferService } from '../shared/modules/offer/offer.service.js';
+import { DefaultCommentService } from '../shared/modules/comment/comment.service.js';
+import { DefaultFavoriteService } from '../shared/modules/favorite/favorite.service.js';
 
 import { TSVFileReader } from '../cli/tsv/tsv-file-reader.js';
 import { TSVOfferParser } from '../cli/tsv/tsv-offer.parser.js';
@@ -29,9 +33,13 @@ export function createContainer(): Container {
 
   container.bind(COMPONENTS.UserModel).toConstantValue(createUserModel());
   container.bind(COMPONENTS.OfferModel).toConstantValue(createOfferModel());
+  container.bind(COMPONENTS.CommentModel).toConstantValue(createCommentModel());
+  container.bind(COMPONENTS.FavoriteModel).toConstantValue(createFavoriteModel());
 
   container.bind(COMPONENTS.UserService).to(DefaultUserService).inSingletonScope();
   container.bind(COMPONENTS.OfferService).to(DefaultOfferService).inSingletonScope();
+  container.bind(COMPONENTS.CommentService).to(DefaultCommentService).inSingletonScope();
+  container.bind(COMPONENTS.FavoriteService).to(DefaultFavoriteService).inSingletonScope();
 
   container.bind(TSVFileReader).toSelf().inSingletonScope();
   container.bind(TSVOfferParser).toSelf().inSingletonScope();

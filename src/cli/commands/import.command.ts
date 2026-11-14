@@ -10,8 +10,6 @@ import type { ILogger } from '../../shared/logger/logger.interface.js';
 import type { DatabaseClient } from '../../shared/database/database-client.interface.js';
 import type { UserService } from '../../shared/modules/user/user-service.interface.js';
 import type { OfferService } from '../../shared/modules/offer/offer-service.interface.js';
-import { ConfigService } from '../../shared/config/config.service.js';
-import { createSha256 } from '../../shared/helpers/hash.js';
 
 @injectable()
 export class ImportCommand implements ICommand {
@@ -23,7 +21,6 @@ export class ImportCommand implements ICommand {
     @inject(COMPONENTS.DatabaseClient) private readonly dbClient: DatabaseClient,
     @inject(COMPONENTS.UserService) private readonly userService: UserService,
     @inject(COMPONENTS.OfferService) private readonly offerService: OfferService,
-    @inject(COMPONENTS.Config) private readonly config: ConfigService,
   ) {}
 
   public getName(): string {
@@ -50,8 +47,6 @@ export class ImportCommand implements ICommand {
     await this.dbClient.connect(mongoUri);
 
     try {
-      const salt = this.config.getSalt();
-
       await this.fileReader.read(filePath, async (line, lineNumber) => {
         if (!line.trim()) {
           return;
@@ -63,7 +58,6 @@ export class ImportCommand implements ICommand {
           const offer = this.parser.parse(line);
 
           let userId = userIdCache.get(offer.author.email);
-
           if (!userId) {
             let userDoc = await this.userService.findByEmail(offer.author.email);
 
@@ -72,8 +66,8 @@ export class ImportCommand implements ICommand {
                 name: offer.author.name,
                 email: offer.author.email,
                 avatarUrl: offer.author.avatarUrl ?? null,
+                password: offer.author.password,
                 type: offer.author.type,
-                passwordHash: createSha256(offer.author.password, salt),
               });
             }
 
@@ -81,33 +75,31 @@ export class ImportCommand implements ICommand {
             userIdCache.set(offer.author.email, userId);
           }
 
-          await this.offerService.create({
-            title: offer.title,
-            description: offer.description,
-            postDate: offer.postDate,
+          await this.offerService.create(
+            {
+              title: offer.title,
+              description: offer.description,
+              postDate: offer.postDate,
 
-            city: offer.city,
+              city: offer.city.name,
 
-            previewImage: offer.previewImage,
-            images: offer.images,
+              previewImage: offer.previewImage,
+              images: offer.images,
 
-            isPremium: offer.isPremium,
-            isFavorite: offer.isFavorite,
+              isPremium: offer.isPremium,
 
-            rating: offer.rating,
-            type: offer.type,
+              rating: offer.rating,
 
-            bedrooms: offer.bedrooms,
-            maxAdults: offer.maxAdults,
+              type: offer.type,
+              bedrooms: offer.bedrooms,
+              maxAdults: offer.maxAdults,
+              price: offer.price,
 
-            price: offer.price,
-            goods: offer.goods,
-
-            author: userId as any,
-            commentsCount: offer.commentsCount,
-
-            location: offer.location,
-          });
+              goods: offer.goods,
+              location: offer.location,
+            },
+            String(userId)
+          );
 
           ok += 1;
 
