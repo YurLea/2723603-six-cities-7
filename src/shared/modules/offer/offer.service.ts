@@ -12,6 +12,10 @@ import { CITY_LOCATIONS, isCityName } from '../../../types/city.type.js';
 import type { FavoriteService } from '../favorite/favorite-service.interface.js';
 import type { CommentService } from '../comment/comment-service.interface.js';
 
+import { StatusCodes } from 'http-status-codes';
+import type { CityName } from '../../../types/city.type.js';
+import { HttpError } from '../../http/http-error.js';
+
 @injectable()
 export class DefaultOfferService implements OfferService {
   constructor(
@@ -38,7 +42,10 @@ export class DefaultOfferService implements OfferService {
 
   public async create(dto: CreateOfferDto, authorId: string): Promise<Document> {
     if (!isCityName(dto.city)) {
-      throw new Error(`Unknown city: ${dto.city}`);
+      throw new HttpError(
+        StatusCodes.BAD_REQUEST,
+        `Unknown city: ${dto.city}`
+      );
     }
 
     return this.offerModel.create({
@@ -76,10 +83,10 @@ export class DefaultOfferService implements OfferService {
   public async updateById(offerId: string, dto: UpdateOfferDto, userId: string): Promise<Document> {
     const offer = await this.offerModel.findById(offerId).exec();
     if (!offer) {
-      throw new Error('Offer not found');
+      throw new HttpError(StatusCodes.NOT_FOUND, 'Offer not found');
     }
     if (String(offer.author) !== userId) {
-      throw new Error('Forbidden');
+      throw new HttpError(StatusCodes.FORBIDDEN, 'Forbidden');
     }
 
     const updateData: Partial<OfferEntity> = {};
@@ -120,7 +127,10 @@ export class DefaultOfferService implements OfferService {
 
     if (dto.city !== undefined) {
       if (!isCityName(dto.city)) {
-        throw new Error(`Unknown city: ${dto.city}`);
+        throw new HttpError(
+          StatusCodes.BAD_REQUEST,
+          `Unknown city: ${dto.city}`
+        );
       }
       updateData.city = {
         name: dto.city,
@@ -135,7 +145,7 @@ export class DefaultOfferService implements OfferService {
     ).populate('author', 'name email avatarUrl type').exec();
 
     if (!updated) {
-      throw new Error('Offer not found');
+      throw new HttpError(StatusCodes.NOT_FOUND, 'Offer not found');
     }
 
     return updated;
@@ -144,10 +154,10 @@ export class DefaultOfferService implements OfferService {
   public async deleteById(offerId: string, userId: string): Promise<void> {
     const offer = await this.offerModel.findById(offerId).exec();
     if (!offer) {
-      throw new Error('Offer not found');
+      throw new HttpError(StatusCodes.NOT_FOUND, 'Offer not found');
     }
     if (String(offer.author) !== userId) {
-      throw new Error('Forbidden');
+      throw new HttpError(StatusCodes.FORBIDDEN, 'Forbidden');
     }
 
     await this.commentService.clearByOfferId(offerId);
@@ -156,9 +166,12 @@ export class DefaultOfferService implements OfferService {
     await this.offerModel.deleteOne({ _id: offerId }).exec();
   }
 
-  public async findPremiumByCity(city: any): Promise<Document[]> {
+  public async findPremiumByCity(city: CityName): Promise<Document[]> {
     if (!isCityName(city)) {
-      throw new Error(`Unknown city: ${city}`);
+      throw new HttpError(
+        StatusCodes.BAD_REQUEST,
+        `Unknown city: ${city}`
+      );
     }
 
     return this.offerModel
