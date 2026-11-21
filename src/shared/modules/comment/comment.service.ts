@@ -27,12 +27,13 @@ export class DefaultCommentService implements CommentService {
     const created = await this.commentModel.create({
       text: dto.text,
       rating: dto.rating,
-      offer: offerId as any,
-      author: userId as any,
+      offer: this.toObjectId(offerId),
+      author: this.toObjectId(userId),
       postDate: new Date(),
     });
 
     await this.recalculateOfferStats(offerId);
+    await created.populate('author', 'name email avatarUrl type');
 
     return created;
   }

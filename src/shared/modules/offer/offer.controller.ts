@@ -6,6 +6,8 @@ import type { CityName } from '../../../types/city.type.js';
 import type { ILogger } from '../../logger/logger.interface.js';
 import { Controller } from '../../http/controller.abstract.js';
 import { HttpError } from '../../http/http-error.js';
+import { ValidateObjectIdMiddleware } from '../../http/middlewares/validate-objectid.middleware.js';
+import { ValidateDtoMiddleware } from '../../http/middlewares/validate-dto.middleware.js';
 
 import {
   offerToResponse,
@@ -16,8 +18,8 @@ import type { OfferService } from './offer-service.interface.js';
 import type { FavoriteService } from '../favorite/favorite-service.interface.js';
 import { SessionService } from '../user/session.service.js';
 
-import type { CreateOfferDto } from './dto/create-offer.dto.js';
-import type { UpdateOfferDto } from './dto/update-offer.dto.js';
+import { CreateOfferDto } from './dto/create-offer.dto.js';
+import { UpdateOfferDto } from './dto/update-offer.dto.js';
 
 type OfferParams = {
   offerId: string;
@@ -42,30 +44,43 @@ export class OfferController extends Controller {
       path: '/',
       method: 'post',
       handler: this.create,
+      middlewares: [
+        new ValidateDtoMiddleware(CreateOfferDto),
+      ],
     });
 
     this.addRoute({
       path: '/premium/:city',
       method: 'get',
-      handler: this.premium,
+      handler: this.indexPremium,
     });
 
     this.addRoute({
       path: '/:offerId',
       method: 'get',
       handler: this.show,
+      middlewares: [
+        new ValidateObjectIdMiddleware('offerId'),
+      ],
     });
 
     this.addRoute({
       path: '/:offerId',
       method: 'patch',
       handler: this.update,
+      middlewares: [
+        new ValidateObjectIdMiddleware('offerId'),
+        new ValidateDtoMiddleware(UpdateOfferDto),
+      ],
     });
 
     this.addRoute({
       path: '/:offerId',
       method: 'delete',
       handler: this.delete,
+      middlewares: [
+        new ValidateObjectIdMiddleware('offerId'),
+      ],
     });
   }
 
@@ -174,7 +189,7 @@ export class OfferController extends Controller {
     this.noContent(res);
   }
 
-  private async premium(
+  private async indexPremium(
     req: Request<{ city: string }>,
     res: Response
   ): Promise<void> {

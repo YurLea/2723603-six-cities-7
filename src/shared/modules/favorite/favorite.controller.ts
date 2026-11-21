@@ -4,6 +4,7 @@ import { StatusCodes } from 'http-status-codes';
 import type { ILogger } from '../../logger/logger.interface.js';
 import { Controller } from '../../http/controller.abstract.js';
 import { HttpError } from '../../http/http-error.js';
+import { ValidateObjectIdMiddleware } from '../../http/middlewares/validate-objectid.middleware.js';
 
 import {
   offerToResponse,
@@ -37,7 +38,10 @@ export class FavoriteController extends Controller {
     this.addRoute({
       path: '/:offerId/:status',
       method: 'post',
-      handler: this.setStatus,
+      handler: this.update,
+      middlewares: [
+        new ValidateObjectIdMiddleware('offerId'),
+      ],
     });
   }
 
@@ -51,7 +55,7 @@ export class FavoriteController extends Controller {
     );
   }
 
-  private async setStatus(
+  private async update(
     req: Request<FavoriteParams>,
     res: Response
   ): Promise<void> {

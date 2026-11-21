@@ -15,12 +15,27 @@ export abstract class Controller implements ControllerInterface {
     route: Route<Params>
   ): void {
     const handler = route.handler.bind(this);
+    const wrapperAsyncHandler = asyncHandler<Params>(
+      async (req, res, next): Promise<void> => {
+        await handler(req, res, next);
+      }
+    );
+
+    const middlewareHandlers = route.middlewares?.map(
+      (middleware) => asyncHandler<Params>(
+        async (req, res, next): Promise<void> => {
+          await middleware.execute(req, res, next);
+        }
+      )
+    );
+
+    const allHandlers = middlewareHandlers
+      ? [...middlewareHandlers, wrapperAsyncHandler]
+      : [wrapperAsyncHandler];
 
     this.router[route.method]<Params>(
       route.path,
-      asyncHandler<Params>(async (req, res, next): Promise<void> => {
-        await handler(req, res, next);
-      })
+      ...allHandlers
     );
 
     this.logger.debug(
