@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import type { Model, Document } from 'mongoose';
+import { Types, type Model, type Document } from 'mongoose';
 
 import { COMPONENTS } from '../../types.js';
 import type { OfferEntity } from './offer.entity.js';
@@ -51,7 +51,7 @@ export class DefaultOfferService implements OfferService {
     return this.offerModel.create({
       title: dto.title,
       description: dto.description,
-      postDate: dto.postDate ?? new Date(),
+      postDate: dto.postDate ? new Date(dto.postDate) : new Date(),
 
       city: {
         name: dto.city,
@@ -73,7 +73,7 @@ export class DefaultOfferService implements OfferService {
       price: dto.price,
       goods: dto.goods,
 
-      author: authorId as any,
+      author: new Types.ObjectId(authorId),
       commentsCount: 0,
 
       location: dto.location,

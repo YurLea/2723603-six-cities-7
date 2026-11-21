@@ -16,6 +16,7 @@ import { createFavoriteModel } from '../shared/modules/favorite/favorite.model.j
 
 import type { UserService } from '../shared/modules/user/user-service.interface.js';
 import type { OfferService } from '../shared/modules/offer/offer-service.interface.js';
+import type { CommentService } from '../shared/modules/comment/comment-service.interface.js';
 import type { FavoriteService } from '../shared/modules/favorite/favorite-service.interface.js';
 
 import { DefaultUserService } from '../shared/modules/user/user.service.js';
@@ -26,6 +27,7 @@ import { DefaultFavoriteService } from '../shared/modules/favorite/favorite.serv
 import { SessionService } from '../shared/modules/user/session.service.js';
 import { UserController } from '../shared/modules/user/user.controller.js';
 import { OfferController } from '../shared/modules/offer/offer.controller.js';
+import { CommentController } from '../shared/modules/comment/comment.controller.js';
 import { FavoriteController } from '../shared/modules/favorite/favorite.controller.js';
 import { HttpExceptionFilter } from '../shared/http/http-exception-filter.js';
 
@@ -86,6 +88,15 @@ export function createContainer(): Container {
       container.get<ILogger>(COMPONENTS.Logger),
       container.get<OfferService>(COMPONENTS.OfferService),
       container.get<FavoriteService>(COMPONENTS.FavoriteService),
+      container.get(SessionService)
+    ))
+    .inSingletonScope();
+
+  container.bind(CommentController)
+    .toDynamicValue(() => new CommentController(
+      container.get<ILogger>(COMPONENTS.Logger),
+      container.get<CommentService>(COMPONENTS.CommentService),
+      container.get<OfferService>(COMPONENTS.OfferService),
       container.get(SessionService)
     ))
     .inSingletonScope();

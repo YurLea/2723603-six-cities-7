@@ -4,6 +4,7 @@ import { StatusCodes } from 'http-status-codes';
 import type { ILogger } from '../logger/logger.interface.js';
 import type { ExceptionFilter } from './exception-filter.interface.js';
 import { HttpError } from './http-error.js';
+import { ValidationError } from './validation-error.js';
 
 export class HttpExceptionFilter implements ExceptionFilter {
   constructor(private readonly logger: ILogger) {}
@@ -21,6 +22,22 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     let statusCode = StatusCodes.INTERNAL_SERVER_ERROR;
     let message = 'Internal server error';
+
+    if (error instanceof ValidationError) {
+      this.logger.warn('Validation error', {
+        method: req.method,
+        path: req.path,
+        statusCode: error.statusCode,
+        message: error.message,
+        details: error.details,
+      });
+
+      res.status(error.statusCode).json({
+        error: error.message,
+        details: error.details,
+      });
+      return;
+    }
 
     if (error instanceof HttpError) {
       statusCode = error.statusCode;

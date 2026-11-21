@@ -4,11 +4,12 @@ import { StatusCodes } from 'http-status-codes';
 import type { ILogger } from '../../logger/logger.interface.js';
 import { Controller } from '../../http/controller.abstract.js';
 import { HttpError } from '../../http/http-error.js';
+import { ValidateDtoMiddleware } from '../../http/middlewares/validate-dto.middleware.js';
 import { userToResponse } from '../../helpers/document-to-response.js';
 
 import type { UserService } from './user-service.interface.js';
-import type { CreateUserDto } from './dto/create-user.dto.js';
-import type { LoginUserDto } from './dto/login-user.dto.js';
+import { CreateUserDto } from './dto/create-user.dto.js';
+import { LoginUserDto } from './dto/login-user.dto.js';
 import { SessionService } from './session.service.js';
 
 export class UserController extends Controller {
@@ -22,13 +23,19 @@ export class UserController extends Controller {
     this.addRoute({
       path: '/register',
       method: 'post',
-      handler: this.register,
+      handler: this.create,
+      middlewares: [
+        new ValidateDtoMiddleware(CreateUserDto),
+      ],
     });
 
     this.addRoute({
       path: '/login',
       method: 'post',
       handler: this.login,
+      middlewares: [
+        new ValidateDtoMiddleware(LoginUserDto),
+      ],
     });
 
     this.addRoute({
@@ -44,7 +51,7 @@ export class UserController extends Controller {
     });
   }
 
-  private async register(
+  private async create(
     req: Request<Record<string, string>, unknown, CreateUserDto>,
     res: Response
   ): Promise<void> {

@@ -12,6 +12,7 @@ import { HttpExceptionFilter } from '../shared/http/http-exception-filter.js';
 
 import { UserController } from '../shared/modules/user/user.controller.js';
 import { OfferController } from '../shared/modules/offer/offer.controller.js';
+import { CommentController } from '../shared/modules/comment/comment.controller.js';
 import { FavoriteController } from '../shared/modules/favorite/favorite.controller.js';
 
 @injectable()
@@ -34,6 +35,9 @@ export class Application {
     @inject(OfferController)
     private readonly offerController: OfferController,
 
+    @inject(CommentController)
+    private readonly commentController: CommentController,
+
     @inject(FavoriteController)
     private readonly favoriteController: FavoriteController,
 
@@ -48,6 +52,7 @@ export class Application {
 
   private initControllers(): void {
     this.server.use('/offers', this.offerController.router);
+    this.server.use('/comments', this.commentController.router);
     this.server.use('/favorite', this.favoriteController.router);
     this.server.use('/', this.userController.router);
   }
