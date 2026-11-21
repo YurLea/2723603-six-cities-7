@@ -27,7 +27,11 @@ components:
     bearerAuth:
       type: http
       scheme: bearer
-      bearerFormat: JWT
+      bearerFormat: opaque
+      description: >
+        Session token returned by POST /login.
+        Send it in the Authorization header using the Bearer scheme.
+        Sessions expire and are invalidated after a server restart.
 
   schemas:
     ErrorResponse:
@@ -237,7 +241,50 @@ components:
         [title, description, city, previewImage, images, isPremium, type, bedrooms, maxAdults, price, goods, location]
 
     UpdateOfferDto:
-      $ref: '#/components/schemas/CreateOfferDto'
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 10
+          maxLength: 100
+        description:
+          type: string
+          minLength: 20
+          maxLength: 1024
+        city:
+          type: string
+          enum: [ Paris, Cologne, Brussels, Amsterdam, Hamburg, Dusseldorf ]
+        previewImage:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+          minItems: 6
+          maxItems: 6
+        isPremium:
+          type: boolean
+        type:
+          type: string
+          enum: [ apartment, house, room, hotel ]
+        bedrooms:
+          type: integer
+          minimum: 1
+          maximum: 8
+        maxAdults:
+          type: integer
+          minimum: 1
+          maximum: 10
+        price:
+          type: integer
+          minimum: 100
+          maximum: 100000
+        goods:
+          type: array
+          items:
+            type: string
+        location:
+          $ref: '#/components/schemas/Location'
 
     Comment:
       type: object
@@ -584,6 +631,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Offer'
+        '400':
+          description: Invalid favorite status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '401':
           description: Unauthorized
           content:
@@ -617,6 +670,12 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '403':
+          description: Registration is available only to anonymous users
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '409':
           description: Email already exists
           content:
