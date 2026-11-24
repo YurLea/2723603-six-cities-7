@@ -5,6 +5,7 @@ import type { ILogger } from '../../logger/logger.interface.js';
 import { Controller } from '../../http/controller.abstract.js';
 import { HttpError } from '../../http/http-error.js';
 import { ValidateObjectIdMiddleware } from '../../http/middlewares/validate-objectid.middleware.js';
+import { ValidateExistenceMiddleware } from '../../http/middlewares/validate-existence.middleware.js';
 
 import {
   offerToResponse,
@@ -41,6 +42,7 @@ export class FavoriteController extends Controller {
       handler: this.update,
       middlewares: [
         new ValidateObjectIdMiddleware('offerId'),
+        new ValidateExistenceMiddleware('offerId', this.offerService, 'Offer'),
       ],
     });
   }
@@ -71,19 +73,12 @@ export class FavoriteController extends Controller {
 
     const offer = await this.offerService.findById(offerId);
 
-    if (!offer) {
-      throw new HttpError(
-        StatusCodes.NOT_FOUND,
-        'Offer not found'
-      );
-    }
-
     if (status === '1') {
       await this.favoriteService.add(userId, offerId);
     } else {
       await this.favoriteService.remove(userId, offerId);
     }
 
-    this.ok(res, offerToResponse(offer, status === '1'));
+    this.ok(res, offerToResponse(offer!, status === '1'));
   }
 }

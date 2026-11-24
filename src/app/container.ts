@@ -79,7 +79,8 @@ export function createContainer(): Container {
     .toDynamicValue(() => new UserController(
       container.get<ILogger>(COMPONENTS.Logger),
       container.get<UserService>(COMPONENTS.UserService),
-      container.get(SessionService)
+      container.get(SessionService),
+      container.get<ConfigService>(COMPONENTS.Config).getUploadDirectory()
     ))
     .inSingletonScope();
 

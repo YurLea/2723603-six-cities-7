@@ -4,4 +4,5 @@ export type AppConfig = {
   mongoUri: string;
   salt: string;
   sessionTtlSeconds: number;
+  uploadDirectory: string;
 };

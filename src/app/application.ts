@@ -48,6 +48,7 @@ export class Application {
   private initMiddleware(): void {
     this.server.disable('x-powered-by');
     this.server.use(express.json());
+    this.server.use('/uploads', express.static(this.config.getUploadDirectory()));
   }
 
   private initControllers(): void {
