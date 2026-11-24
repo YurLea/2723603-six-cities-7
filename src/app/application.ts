@@ -64,7 +64,6 @@ export class Application {
         'Route not found'
       ));
     });
-
     this.server.use(this.exceptionFilter.catch);
   }
 
