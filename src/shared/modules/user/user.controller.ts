@@ -11,12 +11,15 @@ import type { UserService } from './user-service.interface.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { LoginUserDto } from './dto/login-user.dto.js';
 import { SessionService } from './session.service.js';
+import { UploadAvatarMiddleware } from '../../http/middlewares/upload-avatar.middleware.js';
+import { ValidateExistenceMiddleware } from '../../http/middlewares/validate-existence.middleware.js';
 
 export class UserController extends Controller {
   constructor(
     logger: ILogger,
     private readonly userService: UserService,
-    private readonly sessions: SessionService
+    private readonly sessions: SessionService,
+    private readonly uploadDirectory: string
   ) {
     super(logger);
 
@@ -42,6 +45,29 @@ export class UserController extends Controller {
       path: '/login',
       method: 'get',
       handler: this.checkAuth,
+      middlewares: [
+        new ValidateExistenceMiddleware(
+          'userId',
+          this.userService,
+          'User',
+          (req) => this.sessions.requireUserId(req)
+        ),
+      ],
+    });
+
+    this.addRoute({
+      path: '/avatar',
+      method: 'post',
+      handler: this.uploadAvatar,
+      middlewares: [
+        new UploadAvatarMiddleware(this.uploadDirectory),
+        new ValidateExistenceMiddleware(
+          'userId',
+          this.userService,
+          'User',
+          (req) => this.sessions.requireUserId(req)
+        ),
+      ],
     });
 
     this.addRoute({
@@ -98,19 +124,22 @@ export class UserController extends Controller {
   }
 
   private async checkAuth(
-    req: Request,
+    _req: Request,
     res: Response
   ): Promise<void> {
+    const user = res.locals.userIdEntity;
+    this.ok(res, userToResponse(user));
+  }
+
+  private async uploadAvatar(req: Request, res: Response): Promise<void> {
     const userId = this.sessions.requireUserId(req);
-    const user = await this.userService.findById(userId);
-
-    if (!user) {
-      throw new HttpError(
-        StatusCodes.UNAUTHORIZED,
-        'User no longer exists'
-      );
+    if (!req.file) {
+      throw new HttpError(StatusCodes.BAD_REQUEST, 'Avatar file is required');
     }
-
+    const user = await this.userService.updateAvatar(userId, `/uploads/${req.file.filename}`);
+    if (!user) {
+      throw new HttpError(StatusCodes.NOT_FOUND, 'User not found');
+    }
     this.ok(res, userToResponse(user));
   }
 

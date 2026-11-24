@@ -1,0 +1,11 @@
+### Upload a JPEG/PNG avatar (replace token and choose a local image)
+POST http://localhost:4000/avatar
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=AvatarBoundary
+
+--AvatarBoundary
+Content-Disposition: form-data; name="avatar"; filename="avatar.png"
+Content-Type: image/png
+
+< ./avatar.png
+--AvatarBoundary--

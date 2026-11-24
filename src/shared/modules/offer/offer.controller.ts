@@ -8,6 +8,7 @@ import { Controller } from '../../http/controller.abstract.js';
 import { HttpError } from '../../http/http-error.js';
 import { ValidateObjectIdMiddleware } from '../../http/middlewares/validate-objectid.middleware.js';
 import { ValidateDtoMiddleware } from '../../http/middlewares/validate-dto.middleware.js';
+import { ValidateExistenceMiddleware } from '../../http/middlewares/validate-existence.middleware.js';
 
 import {
   offerToResponse,
@@ -61,6 +62,7 @@ export class OfferController extends Controller {
       handler: this.show,
       middlewares: [
         new ValidateObjectIdMiddleware('offerId'),
+        new ValidateExistenceMiddleware('offerId', this.offerService, 'Offer'),
       ],
     });
 
@@ -71,6 +73,7 @@ export class OfferController extends Controller {
       middlewares: [
         new ValidateObjectIdMiddleware('offerId'),
         new ValidateDtoMiddleware(UpdateOfferDto),
+        new ValidateExistenceMiddleware('offerId', this.offerService, 'Offer'),
       ],
     });
 
@@ -80,6 +83,7 @@ export class OfferController extends Controller {
       handler: this.delete,
       middlewares: [
         new ValidateObjectIdMiddleware('offerId'),
+        new ValidateExistenceMiddleware('offerId', this.offerService, 'Offer'),
       ],
     });
   }
@@ -138,7 +142,7 @@ export class OfferController extends Controller {
     res: Response
   ): Promise<void> {
     const favoriteIds = await this.getFavoriteIds(req);
-    const offer = await this.getOffer(req.params.offerId);
+    const offer = res.locals.offerIdEntity as Document;
 
     this.ok(
       res,

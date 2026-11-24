@@ -36,6 +36,10 @@ export class DefaultUserService implements UserService {
     return this.userModel.findById(id).exec();
   }
 
+  public async updateAvatar(id: string, avatarUrl: string): Promise<Document | null> {
+    return this.userModel.findByIdAndUpdate(id, { avatarUrl }, { new: true }).exec();
+  }
+
   public async verify(dto: LoginUserDto): Promise<Document | null> {
     const user = await this.userModel.findOne({ email: dto.email }).exec();
     if (!user) {

@@ -6,5 +6,6 @@ export interface UserService {
   create(dto: CreateUserDto): Promise<Document>;
   findByEmail(email: string): Promise<Document | null>;
   findById(id: string): Promise<Document | null>;
+  updateAvatar(id: string, avatarUrl: string): Promise<Document | null>;
   verify(dto: LoginUserDto): Promise<Document | null>;
 }

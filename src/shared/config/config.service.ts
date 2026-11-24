@@ -19,6 +19,7 @@ export class ConfigService {
       'MONGO_URI',
       'SALT',
       'SESSION_TTL_SECONDS',
+      'UPLOAD_DIRECTORY',
     ];
 
     for (const variable of requiredVariables) {
@@ -71,6 +72,12 @@ export class ConfigService {
         env: 'SESSION_TTL_SECONDS',
         default: 0,
       },
+      uploadDirectory: {
+        doc: 'Directory for uploaded user files',
+        format: 'non-empty-string',
+        env: 'UPLOAD_DIRECTORY',
+        default: './uploads',
+      },
     });
 
     this.config.validate({ allowed: 'strict' });
@@ -102,5 +109,9 @@ export class ConfigService {
 
   public getSessionTtlSeconds(): number {
     return this.config.get('sessionTtlSeconds');
+  }
+
+  public getUploadDirectory(): string {
+    return this.config.get('uploadDirectory');
   }
 }

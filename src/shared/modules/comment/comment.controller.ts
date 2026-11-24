@@ -1,11 +1,9 @@
 import type { Request, Response } from 'express';
-import { StatusCodes } from 'http-status-codes';
-
 import type { ILogger } from '../../logger/logger.interface.js';
 import { Controller } from '../../http/controller.abstract.js';
-import { HttpError } from '../../http/http-error.js';
 import { ValidateObjectIdMiddleware } from '../../http/middlewares/validate-objectid.middleware.js';
 import { ValidateDtoMiddleware } from '../../http/middlewares/validate-dto.middleware.js';
+import { ValidateExistenceMiddleware } from '../../http/middlewares/validate-existence.middleware.js';
 import { commentToResponse } from '../../helpers/document-to-response.js';
 
 import type { CommentService } from './comment-service.interface.js';
@@ -32,6 +30,7 @@ export class CommentController extends Controller {
       handler: this.index,
       middlewares: [
         new ValidateObjectIdMiddleware('offerId'),
+        new ValidateExistenceMiddleware('offerId', this.offerService, 'Offer'),
       ],
     });
 
@@ -42,19 +41,9 @@ export class CommentController extends Controller {
       middlewares: [
         new ValidateObjectIdMiddleware('offerId'),
         new ValidateDtoMiddleware(CreateCommentDto),
+        new ValidateExistenceMiddleware('offerId', this.offerService, 'Offer'),
       ],
     });
-  }
-
-  private async ensureOfferExists(offerId: string): Promise<void> {
-    const offer = await this.offerService.findById(offerId);
-
-    if (!offer) {
-      throw new HttpError(
-        StatusCodes.NOT_FOUND,
-        'Offer not found'
-      );
-    }
   }
 
   private async index(
@@ -62,8 +51,6 @@ export class CommentController extends Controller {
     res: Response
   ): Promise<void> {
     const { offerId } = req.params;
-
-    await this.ensureOfferExists(offerId);
 
     const comments = await this.commentService.findByOfferId(offerId);
 
@@ -79,8 +66,6 @@ export class CommentController extends Controller {
   ): Promise<void> {
     const userId = this.sessions.requireUserId(req);
     const { offerId } = req.params;
-
-    await this.ensureOfferExists(offerId);
 
     const comment = await this.commentService.create(
       req.body,
