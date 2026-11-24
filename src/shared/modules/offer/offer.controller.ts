@@ -142,7 +142,7 @@ export class OfferController extends Controller {
     res: Response
   ): Promise<void> {
     const favoriteIds = await this.getFavoriteIds(req);
-    const offer = await this.getOffer(req.params.offerId);
+    const offer = res.locals.offerIdEntity as Document;
 
     this.ok(
       res,

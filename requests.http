@@ -1,4 +1,4 @@
-### Upload a JPEG/PNG avatar (replace token and select a local image)
+### Upload a JPEG/PNG avatar (replace token and choose a local image)
 POST http://localhost:4000/avatar
 Authorization: Bearer {{token}}
 Content-Type: multipart/form-data; boundary=AvatarBoundary

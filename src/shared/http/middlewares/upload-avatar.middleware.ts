@@ -1,8 +1,7 @@
 import multer from 'multer';
 import { nanoid } from 'nanoid';
-import { extname } from 'node:path';
 import { mkdirSync } from 'node:fs';
-import { lookup } from 'mime-types';
+import { extension } from 'mime-types';
 import type { Middleware } from '../middleware.interface.js';
 import type { NextFunction, Request, Response } from 'express';
 import { HttpError } from '../http-error.js';
@@ -16,12 +15,12 @@ export class UploadAvatarMiddleware implements Middleware {
       storage: multer.diskStorage({
         destination: uploadDirectory,
         filename: (_req, file, callback) => {
-          const extension = lookup(file.mimetype);
-          if (!['image/jpeg', 'image/png'].includes(file.mimetype) || !extension) {
+          const fileExtension = extension(file.mimetype);
+          if (!['image/jpeg', 'image/png'].includes(file.mimetype) || !fileExtension) {
             callback(new Error('Only JPEG and PNG images are allowed'), '');
             return;
           }
-          callback(null, `${nanoid()}${extname(`file.${extension}`)}`);
+          callback(null, `${nanoid()}.${fileExtension}`);
         },
       }),
       limits: { fileSize: 2 * 1024 * 1024 },
@@ -38,6 +37,10 @@ export class UploadAvatarMiddleware implements Middleware {
     this.upload.single('avatar')(req, res, (error: unknown) => {
       if (error) {
         next(new HttpError(StatusCodes.BAD_REQUEST, error instanceof Error ? error.message : 'Upload failed'));
+        return;
+      }
+      if (!req.file) {
+        next(new HttpError(StatusCodes.BAD_REQUEST, 'Avatar file is required'));
         return;
       }
       next();

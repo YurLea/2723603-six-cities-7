@@ -12,6 +12,7 @@ import { CreateUserDto } from './dto/create-user.dto.js';
 import { LoginUserDto } from './dto/login-user.dto.js';
 import { SessionService } from './session.service.js';
 import { UploadAvatarMiddleware } from '../../http/middlewares/upload-avatar.middleware.js';
+import { ValidateExistenceMiddleware } from '../../http/middlewares/validate-existence.middleware.js';
 
 export class UserController extends Controller {
   constructor(
@@ -44,13 +45,29 @@ export class UserController extends Controller {
       path: '/login',
       method: 'get',
       handler: this.checkAuth,
+      middlewares: [
+        new ValidateExistenceMiddleware(
+          'userId',
+          this.userService,
+          'User',
+          (req) => this.sessions.requireUserId(req)
+        ),
+      ],
     });
 
     this.addRoute({
       path: '/avatar',
       method: 'post',
       handler: this.uploadAvatar,
-      middlewares: [new UploadAvatarMiddleware(this.uploadDirectory)],
+      middlewares: [
+        new UploadAvatarMiddleware(this.uploadDirectory),
+        new ValidateExistenceMiddleware(
+          'userId',
+          this.userService,
+          'User',
+          (req) => this.sessions.requireUserId(req)
+        ),
+      ],
     });
 
     this.addRoute({
@@ -107,19 +124,10 @@ export class UserController extends Controller {
   }
 
   private async checkAuth(
-    req: Request,
+    _req: Request,
     res: Response
   ): Promise<void> {
-    const userId = this.sessions.requireUserId(req);
-    const user = await this.userService.findById(userId);
-
-    if (!user) {
-      throw new HttpError(
-        StatusCodes.UNAUTHORIZED,
-        'User no longer exists'
-      );
-    }
-
+    const user = res.locals.userIdEntity;
     this.ok(res, userToResponse(user));
   }
 

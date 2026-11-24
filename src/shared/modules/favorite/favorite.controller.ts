@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express';
+import type { Document } from 'mongoose';
 import { StatusCodes } from 'http-status-codes';
 
 import type { ILogger } from '../../logger/logger.interface.js';
@@ -71,7 +72,7 @@ export class FavoriteController extends Controller {
       );
     }
 
-    const offer = await this.offerService.findById(offerId);
+    const offer = res.locals.offerIdEntity as Document;
 
     if (status === '1') {
       await this.favoriteService.add(userId, offerId);
@@ -79,6 +80,6 @@ export class FavoriteController extends Controller {
       await this.favoriteService.remove(userId, offerId);
     }
 
-    this.ok(res, offerToResponse(offer!, status === '1'));
+    this.ok(res, offerToResponse(offer, status === '1'));
   }
 }
